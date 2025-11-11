@@ -1,28 +1,41 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom'
+import Layout from './Layout'
+import Home from './pages/Home'
+import Products from './pages/Products'
+import Cart from './pages/Cart'
+import Checkout from './pages/Checkout'
+import { Impressum, Privacy, Terms } from './pages/Legal'
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [cart, setCart] = useState([])
+  const navigate = useNavigate()
+  const location = useLocation()
+
+  const addToCart = (p) => {
+    setCart((prev) => {
+      const found = prev.find((i) => i.id === p.id)
+      if (found) return prev.map((i) => (i.id === p.id ? { ...i, qty: i.qty + 1 } : i))
+      return [...prev, { ...p, qty: 1 }]
+    })
+  }
+  const updateQty = (id, qty) => setCart((prev) => prev.map((i) => (i.id === id ? { ...i, qty } : i)))
+
+  const goCheckout = () => navigate('/checkout')
+
+  const cartCount = useMemo(() => cart.reduce((s, i) => s + i.qty, 0), [cart])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-lg">
-        <h1 className="text-3xl font-bold text-gray-800 mb-4">
-          Vibe Coding Platform
-        </h1>
-        <p className="text-gray-600 mb-6">
-          Your AI-powered development environment
-        </p>
-        <div className="text-center">
-          <button
-            onClick={() => setCount(count + 1)}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
-          >
-            Count is {count}
-          </button>
-        </div>
-      </div>
-    </div>
+    <Layout cartCount={cartCount}>
+      <Routes location={location}>
+        <Route path="/" element={<Home />} />
+        <Route path="/products" element={<Products onAdd={addToCart} />} />
+        <Route path="/cart" element={<Cart items={cart} onUpdateQty={updateQty} onCheckout={goCheckout} />} />
+        <Route path="/checkout" element={<Checkout />} />
+        <Route path="/impressum" element={<Impressum />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
+      </Routes>
+    </Layout>
   )
 }
-
-export default App
