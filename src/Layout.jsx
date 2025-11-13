@@ -86,4 +86,5 @@ export default function Layout({ children, cartCount = 0 }) {
         </div>
       </footer>
     </div>
-  )}
+  )
+}
